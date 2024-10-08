@@ -38,11 +38,23 @@ const sampleQuestions = [
 function App() {
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
   // eslint-disable-next-line
-  const [playerName, setPlayerName] = useState("");
+  const [playerName, setPlayerName] = useState(
+    localStorage.getItem("playerName") || ""
+  );
   const [gameState, setGameState] = useState("waiting"); // 'waiting', 'correct', 'incorrect'
 
   const currentQuestion = sampleQuestions[currentQuestionIndex];
   const qrLink = `${window.location.origin}/play`;
+
+  useEffect(() => {
+    if (gameState === "correct") {
+      const timer = setTimeout(() => {
+        nextQuestion(); // Move to the next question after a short delay
+      }, 200); // 2 seconds delay for the congratulations message
+      return () => clearTimeout(timer); // Cleanup the timer on unmount
+    }
+    // eslint-disable-next-line
+  }, [gameState]);
 
   // eslint-disable-next-line
   const handleAnswer = (answer) => {
@@ -59,18 +71,11 @@ function App() {
       setGameState("waiting"); // Reset game state after answering
     } else {
       alert("Game Over! You've answered all questions.");
+      // Optionally, reset the game
+      setCurrentQuestionIndex(0); // Reset to the first question
+      setGameState("waiting");
     }
   };
-
-  useEffect(() => {
-    if (gameState === "correct") {
-      const timer = setTimeout(() => {
-        nextQuestion(); // Move to the next question after a short delay
-      }, 2000); // 2 seconds delay for the congratulations message
-      return () => clearTimeout(timer); // Cleanup the timer on unmount
-    }
-    // eslint-disable-next-line
-  }, [gameState]);
 
   return (
     <div className="min-h-screen bg-blue-50 p-8 flex flex-col items-center">
@@ -88,14 +93,13 @@ function App() {
         <div className="text-center text-green-600">
           <p className="text-2xl">Congratulations {playerName}!</p>
           <p>You answered correctly!</p>
-          {/* The next question will automatically trigger after a delay */}
         </div>
       )}
 
       {gameState === "incorrect" && (
         <div className="text-center text-red-600">
           <p className="text-2xl">Wrong answer!</p>
-          {/* This message is shown on the mobile UI */}
+          {/* This message will be displayed only on the mobile UI */}
         </div>
       )}
     </div>
@@ -141,7 +145,7 @@ function PlayScreen() {
 
 function AnswerScreen() {
   const navigate = useNavigate();
-  const currentQuestionIndex = 0; // Pass the current index dynamically
+  const currentQuestionIndex = 0; // Use the current index dynamically or pass it via routing
   const currentQuestion = sampleQuestions[currentQuestionIndex];
 
   useEffect(() => {
@@ -150,9 +154,11 @@ function AnswerScreen() {
     const name = localStorage.getItem("playerName");
 
     if (answer === currentQuestion.answer) {
+      // If the answer is correct, show a congratulations message on the computer screen
       alert(`Congratulations ${name}, you answered correctly!`);
-      navigate("/"); // Redirect to home to let them answer the next question
+      navigate("/"); // Redirect to the main screen
     } else {
+      // If the answer is incorrect, show a message on the mobile UI
       alert("Wrong answer!");
       navigate("/play"); // Redirect back to the play screen if the answer is wrong
     }
