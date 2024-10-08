@@ -37,26 +37,12 @@ const sampleQuestions = [
 
 function App() {
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
-  // eslint-disable-next-line
-  const [playerName, setPlayerName] = useState(
-    localStorage.getItem("playerName") || ""
-  );
-  const [gameState, setGameState] = useState("waiting"); // 'waiting', 'correct', 'incorrect'
+  const [playerName, setPlayerName] = useState("");
+  const [gameState, setGameState] = useState("waiting"); // 'waiting', 'playing', 'correct', 'incorrect'
 
   const currentQuestion = sampleQuestions[currentQuestionIndex];
   const qrLink = `${window.location.origin}/play`;
 
-  useEffect(() => {
-    if (gameState === "correct") {
-      const timer = setTimeout(() => {
-        nextQuestion(); // Move to the next question after a short delay
-      }, 200); // 2 seconds delay for the congratulations message
-      return () => clearTimeout(timer); // Cleanup the timer on unmount
-    }
-    // eslint-disable-next-line
-  }, [gameState]);
-
-  // eslint-disable-next-line
   const handleAnswer = (answer) => {
     if (answer === currentQuestion.answer) {
       setGameState("correct");
@@ -71,9 +57,6 @@ function App() {
       setGameState("waiting"); // Reset game state after answering
     } else {
       alert("Game Over! You've answered all questions.");
-      // Optionally, reset the game
-      setCurrentQuestionIndex(0); // Reset to the first question
-      setGameState("waiting");
     }
   };
 
@@ -93,13 +76,24 @@ function App() {
         <div className="text-center text-green-600">
           <p className="text-2xl">Congratulations {playerName}!</p>
           <p>You answered correctly!</p>
+          <button
+            className="bg-blue-500 text-white p-2 rounded mt-4"
+            onClick={nextQuestion} // Move to the next question
+          >
+            Next Question
+          </button>
         </div>
       )}
 
       {gameState === "incorrect" && (
         <div className="text-center text-red-600">
           <p className="text-2xl">Wrong answer!</p>
-          {/* This message will be displayed only on the mobile UI */}
+          <button
+            className="bg-blue-500 text-white p-2 rounded mt-4"
+            onClick={() => setGameState("waiting")} // Reset to waiting state
+          >
+            Try Again
+          </button>
         </div>
       )}
     </div>
@@ -143,9 +137,9 @@ function PlayScreen() {
   );
 }
 
-function AnswerScreen() {
+function AnswerScreen({ nextQuestion }) {
   const navigate = useNavigate();
-  const currentQuestionIndex = 0; // Use the current index dynamically or pass it via routing
+  const currentQuestionIndex = 0; // Pass the current index dynamically
   const currentQuestion = sampleQuestions[currentQuestionIndex];
 
   useEffect(() => {
@@ -154,27 +148,42 @@ function AnswerScreen() {
     const name = localStorage.getItem("playerName");
 
     if (answer === currentQuestion.answer) {
-      // If the answer is correct, show a congratulations message on the computer screen
       alert(`Congratulations ${name}, you answered correctly!`);
+      nextQuestion(); // Call the function to go to the next question
       navigate("/"); // Redirect to the main screen
     } else {
-      // If the answer is incorrect, show a message on the mobile UI
       alert("Wrong answer!");
       navigate("/play"); // Redirect back to the play screen if the answer is wrong
     }
     // eslint-disable-next-line
-  }, [navigate]);
+  }, []);
 
   return null; // This screen is only for validation, so no UI is needed
 }
 
 function Main() {
+  const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
+
+  const nextQuestion = () => {
+    if (currentQuestionIndex < sampleQuestions.length - 1) {
+      setCurrentQuestionIndex((prevIndex) => prevIndex + 1);
+    } else {
+      alert("Game Over! You've answered all questions.");
+    }
+  };
+
   return (
     <Router>
       <Routes>
         <Route path="/play" element={<PlayScreen />} />
-        <Route path="/answer" element={<AnswerScreen />} />
-        <Route path="/" element={<App />} />
+        <Route
+          path="/answer"
+          element={<AnswerScreen nextQuestion={nextQuestion} />}
+        />
+        <Route
+          path="/"
+          element={<App currentQuestionIndex={currentQuestionIndex} />}
+        />
       </Routes>
     </Router>
   );
