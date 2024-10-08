@@ -79,28 +79,33 @@ function PlayScreen() {
 
 function QuestionScreen() {
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
-  const [answer, setAnswer] = useState("");
+  const [selectedOption, setSelectedOption] = useState(null); // Track selected option
   const [feedback, setFeedback] = useState(""); // For showing correct/wrong message
+  const [isSubmitClicked, setIsSubmitClicked] = useState(false); // Track submit button click
   const playerName = localStorage.getItem("playerName");
 
   const currentQuestion = sampleQuestions[currentQuestionIndex];
 
   const handleSubmitAnswer = () => {
-    if (answer === currentQuestion.answer) {
+    setIsSubmitClicked(true); // Indicate the submit button is clicked
+
+    if (selectedOption === currentQuestion.answer) {
       setFeedback(`Congratulations ${playerName}, you answered correctly!`);
       setTimeout(() => {
         nextQuestion();
       }, 2000); // Move to the next question after 2 seconds
     } else {
       setFeedback("Wrong answer! Try again.");
+      setIsSubmitClicked(false); // Reset the submit button if wrong
     }
   };
 
   const nextQuestion = () => {
     if (currentQuestionIndex < sampleQuestions.length - 1) {
       setCurrentQuestionIndex((prevIndex) => prevIndex + 1);
-      setAnswer("");
+      setSelectedOption(null); // Reset selected option for the next question
       setFeedback(""); // Reset feedback for the next question
+      setIsSubmitClicked(false); // Reset the submit button state
     } else {
       alert("Game Over! You've answered all questions.");
     }
@@ -110,11 +115,14 @@ function QuestionScreen() {
     <div className="min-h-screen bg-gray-50 p-8 flex flex-col items-center">
       <h1 className="text-3xl font-bold mb-4">Question for {playerName}</h1>
       <p className="text-xl mb-4">{currentQuestion.question}</p>
+
       {currentQuestion.options.map((option, index) => (
         <button
           key={index}
-          className="bg-blue-500 text-white p-2 rounded mb-2"
-          onClick={() => setAnswer(option)}
+          className={`bg-blue-500 text-white p-2 rounded mb-2 w-full ${
+            selectedOption === option ? "bg-green-400" : "" // Highlight selected option
+          }`}
+          onClick={() => setSelectedOption(option)}
         >
           {option}
         </button>
@@ -123,11 +131,14 @@ function QuestionScreen() {
       {feedback && <p className="text-lg mt-4">{feedback}</p>}
 
       <button
-        className="bg-green-500 text-white p-2 rounded mt-4"
+        className={`bg-green-500 text-white p-2 rounded mt-4 w-full ${
+          isSubmitClicked ? "bg-gray-500" : "" // Change style if clicked
+        }`}
         onClick={handleSubmitAnswer}
-        disabled={!answer} // Disable until an answer is selected
+        disabled={!selectedOption || isSubmitClicked} // Disable if no option is selected or if submit button was already clicked
       >
-        Submit Answer
+        {isSubmitClicked ? "Submitting..." : "Submit Answer"}{" "}
+        {/* Show different text if clicked */}
       </button>
     </div>
   );
