@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import QRCode from "react-qr-code";
 import {
   BrowserRouter as Router,
@@ -36,85 +36,29 @@ const sampleQuestions = [
 ];
 
 function App() {
-  const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
-  // eslint-disable-next-line
-  const [playerName, setPlayerName] = useState("");
-  const [gameState, setGameState] = useState("waiting"); // 'waiting', 'playing', 'correct', 'incorrect'
-
-  const currentQuestion = sampleQuestions[currentQuestionIndex];
   const qrLink = `${window.location.origin}/play`;
-
-  // eslint-disable-next-line
-  const handleAnswer = (answer) => {
-    if (answer === currentQuestion.answer) {
-      setGameState("correct");
-    } else {
-      setGameState("incorrect");
-    }
-  };
-
-  const nextQuestion = () => {
-    if (currentQuestionIndex < sampleQuestions.length - 1) {
-      setCurrentQuestionIndex((prevIndex) => prevIndex + 1);
-      setGameState("waiting"); // Reset game state after answering
-    } else {
-      alert("Game Over! You've answered all questions.");
-    }
-  };
 
   return (
     <div className="min-h-screen bg-blue-50 p-8 flex flex-col items-center">
       <h1 className="text-3xl font-bold mb-4">KBC-Style Game</h1>
-
-      {gameState === "waiting" && (
-        <div className="text-center">
-          <p className="mb-4 text-xl">{currentQuestion.question}</p>
-          <QRCode value={qrLink} className="mx-auto mb-4" />
-          <p>Scan the QR code to play!</p>
-        </div>
-      )}
-
-      {gameState === "correct" && (
-        <div className="text-center text-green-600">
-          <p className="text-2xl">Congratulations {playerName}!</p>
-          <p>You answered correctly!</p>
-          <button
-            className="bg-blue-500 text-white p-2 rounded mt-4"
-            onClick={nextQuestion} // Move to the next question
-          >
-            Next Question
-          </button>
-        </div>
-      )}
-
-      {gameState === "incorrect" && (
-        <div className="text-center text-red-600">
-          <p className="text-2xl">Wrong answer!</p>
-          <button
-            className="bg-blue-500 text-white p-2 rounded mt-4"
-            onClick={() => setGameState("waiting")} // Reset to waiting state
-          >
-            Try Again
-          </button>
-        </div>
-      )}
+      <QRCode value={qrLink} className="mx-auto mb-4" />
+      <p>Scan the QR code to start the game!</p>
     </div>
   );
 }
 
 function PlayScreen() {
   const [playerName, setPlayerName] = useState("");
-  const [answer, setAnswer] = useState("");
   const navigate = useNavigate();
 
-  const handleSubmit = () => {
+  const handleNameSubmit = () => {
     localStorage.setItem("playerName", playerName);
-    navigate(`/answer?answer=${answer}`);
+    navigate(`/question`); // Redirect to the question screen
   };
 
   return (
     <div className="min-h-screen bg-gray-50 p-8 flex flex-col items-center">
-      <h1 className="text-3xl font-bold mb-4">Join the Game</h1>
+      <h1 className="text-3xl font-bold mb-4">Enter Your Name</h1>
       <input
         type="text"
         placeholder="Enter your name"
@@ -122,16 +66,66 @@ function PlayScreen() {
         value={playerName}
         onChange={(e) => setPlayerName(e.target.value)}
       />
-      <input
-        type="text"
-        placeholder="Enter your answer"
-        className="mb-4 p-2 border border-gray-300 rounded"
-        value={answer}
-        onChange={(e) => setAnswer(e.target.value)}
-      />
       <button
         className="bg-blue-500 text-white p-2 rounded"
-        onClick={handleSubmit}
+        onClick={handleNameSubmit}
+        disabled={!playerName.trim()} // Ensure the button is disabled until a name is entered
+      >
+        Start Game
+      </button>
+    </div>
+  );
+}
+
+function QuestionScreen() {
+  const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
+  const [answer, setAnswer] = useState("");
+  const [feedback, setFeedback] = useState(""); // For showing correct/wrong message
+  const playerName = localStorage.getItem("playerName");
+
+  const currentQuestion = sampleQuestions[currentQuestionIndex];
+
+  const handleSubmitAnswer = () => {
+    if (answer === currentQuestion.answer) {
+      setFeedback(`Congratulations ${playerName}, you answered correctly!`);
+      setTimeout(() => {
+        nextQuestion();
+      }, 2000); // Move to the next question after 2 seconds
+    } else {
+      setFeedback("Wrong answer! Try again.");
+    }
+  };
+
+  const nextQuestion = () => {
+    if (currentQuestionIndex < sampleQuestions.length - 1) {
+      setCurrentQuestionIndex((prevIndex) => prevIndex + 1);
+      setAnswer("");
+      setFeedback(""); // Reset feedback for the next question
+    } else {
+      alert("Game Over! You've answered all questions.");
+    }
+  };
+
+  return (
+    <div className="min-h-screen bg-gray-50 p-8 flex flex-col items-center">
+      <h1 className="text-3xl font-bold mb-4">Question for {playerName}</h1>
+      <p className="text-xl mb-4">{currentQuestion.question}</p>
+      {currentQuestion.options.map((option, index) => (
+        <button
+          key={index}
+          className="bg-blue-500 text-white p-2 rounded mb-2"
+          onClick={() => setAnswer(option)}
+        >
+          {option}
+        </button>
+      ))}
+
+      {feedback && <p className="text-lg mt-4">{feedback}</p>}
+
+      <button
+        className="bg-green-500 text-white p-2 rounded mt-4"
+        onClick={handleSubmitAnswer}
+        disabled={!answer} // Disable until an answer is selected
       >
         Submit Answer
       </button>
@@ -139,53 +133,13 @@ function PlayScreen() {
   );
 }
 
-function AnswerScreen({ nextQuestion }) {
-  const navigate = useNavigate();
-  const currentQuestionIndex = 0; // Pass the current index dynamically
-  const currentQuestion = sampleQuestions[currentQuestionIndex];
-
-  useEffect(() => {
-    const queryParams = new URLSearchParams(window.location.search);
-    const answer = queryParams.get("answer");
-    const name = localStorage.getItem("playerName");
-
-    if (answer === currentQuestion.answer) {
-      alert(`Congratulations ${name}, you answered correctly!`);
-      nextQuestion(); // Call the function to go to the next question
-      navigate("/"); // Redirect to the main screen
-    } else {
-      alert("Wrong answer!");
-      navigate("/play"); // Redirect back to the play screen if the answer is wrong
-    }
-    // eslint-disable-next-line
-  }, []);
-
-  return null; // This screen is only for validation, so no UI is needed
-}
-
 function Main() {
-  const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
-
-  const nextQuestion = () => {
-    if (currentQuestionIndex < sampleQuestions.length - 1) {
-      setCurrentQuestionIndex((prevIndex) => prevIndex + 1);
-    } else {
-      alert("Game Over! You've answered all questions.");
-    }
-  };
-
   return (
     <Router>
       <Routes>
         <Route path="/play" element={<PlayScreen />} />
-        <Route
-          path="/answer"
-          element={<AnswerScreen nextQuestion={nextQuestion} />}
-        />
-        <Route
-          path="/"
-          element={<App currentQuestionIndex={currentQuestionIndex} />}
-        />
+        <Route path="/question" element={<QuestionScreen />} />
+        <Route path="/" element={<App />} />
       </Routes>
     </Router>
   );
