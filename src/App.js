@@ -1,11 +1,6 @@
 import React, { useState } from "react";
 import QRCode from "react-qr-code";
-import {
-  BrowserRouter as Router,
-  Route,
-  Routes,
-  useNavigate,
-} from "react-router-dom";
+import { BrowserRouter as Router, Route, Routes, useNavigate } from "react-router-dom";
 
 const sampleQuestions = [
   {
@@ -77,7 +72,7 @@ function PlayScreen() {
   );
 }
 
-function QuestionScreen() {
+function QuestionScreen({ onGameOver }) {
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
   const [selectedOption, setSelectedOption] = useState(null); // Track selected option
   const [feedback, setFeedback] = useState(""); // For showing correct/wrong message
@@ -107,7 +102,7 @@ function QuestionScreen() {
       setFeedback(""); // Reset feedback for the next question
       setIsSubmitClicked(false); // Reset the submit button state
     } else {
-      alert("Game Over! You've answered all questions.");
+      onGameOver(); // Call the game over function when all questions are answered
     }
   };
 
@@ -137,20 +132,57 @@ function QuestionScreen() {
         onClick={handleSubmitAnswer}
         disabled={!selectedOption || isSubmitClicked} // Disable if no option is selected or if submit button was already clicked
       >
-        {isSubmitClicked ? "Submitting..." : "Submit Answer"}{" "}
-        {/* Show different text if clicked */}
+        {isSubmitClicked ? "Submitting..." : "Submit Answer"} {/* Show different text if clicked */}
+      </button>
+    </div>
+  );
+}
+
+function GameOverScreen({ onRestart }) {
+  return (
+    <div className="min-h-screen bg-red-100 p-8 flex flex-col items-center justify-center">
+      <h1 className="text-5xl font-bold mb-4 text-red-600">Game Over!</h1>
+      <p className="text-xl mb-4">You've answered all questions!</p>
+      <button
+        className="bg-blue-500 text-white p-2 rounded"
+        onClick={onRestart}
+      >
+        Restart Game
       </button>
     </div>
   );
 }
 
 function Main() {
+  const [isGameOver, setIsGameOver] = useState(false); // State to track game over
+
+  const handleGameOver = () => {
+    setIsGameOver(true); // Set game over state to true
+  };
+
+  const handleRestart = () => {
+    setIsGameOver(false); // Reset game over state
+    localStorage.removeItem("playerName"); // Optionally remove player name from storage
+  };
+
   return (
     <Router>
       <Routes>
-        <Route path="/play" element={<PlayScreen />} />
-        <Route path="/question" element={<QuestionScreen />} />
-        <Route path="/" element={<App />} />
+        {isGameOver ? (
+          <Route
+            path="/"
+            element={<GameOverScreen onRestart={handleRestart} />}
+          />
+        ) : (
+          <>
+            <Route path="/play" element={<PlayScreen />} />
+            <Route
+              path="/question"
+              element={<QuestionScreen onGameOver={handleGameOver} />}
+            />
+            <Route path="/" element={<App />} />
+          </>
+        )}
       </Routes>
     </Router>
   );
