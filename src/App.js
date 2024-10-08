@@ -40,9 +40,11 @@ function App() {
 
   return (
     <div className="min-h-screen bg-blue-50 p-8 flex flex-col items-center">
-      <h1 className="text-3xl font-bold mb-4">KBC-Style Game</h1>
+      <h1 className="text-3xl font-bold mb-4 font-serif">KBC-Style Game</h1>
       <QRCode value={qrLink} className="mx-auto mb-4" />
-      <p>Scan the QR code to start the game!</p>
+      <p className="font-serif font-semibold">
+        Scan the QR code to start the game! on your mobile phone
+      </p>
     </div>
   );
 }
