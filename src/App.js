@@ -36,15 +36,29 @@ const sampleQuestions = [
 ];
 
 function App() {
-  // eslint-disable-next-line
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
-  // eslint-disable-next-line
   const [playerName, setPlayerName] = useState("");
-  // eslint-disable-next-line
   const [gameState, setGameState] = useState("waiting"); // 'waiting', 'playing', 'correct', 'incorrect'
 
   const currentQuestion = sampleQuestions[currentQuestionIndex];
   const qrLink = `${window.location.origin}/play`;
+
+  const handleAnswer = (answer) => {
+    if (answer === currentQuestion.answer) {
+      setGameState("correct");
+    } else {
+      setGameState("incorrect");
+    }
+  };
+
+  const nextQuestion = () => {
+    if (currentQuestionIndex < sampleQuestions.length - 1) {
+      setCurrentQuestionIndex((prevIndex) => prevIndex + 1);
+      setGameState("waiting"); // Reset game state after answering
+    } else {
+      alert("Game Over! You've answered all questions.");
+    }
+  };
 
   return (
     <div className="min-h-screen bg-blue-50 p-8 flex flex-col items-center">
@@ -62,12 +76,24 @@ function App() {
         <div className="text-center text-green-600">
           <p className="text-2xl">Congratulations {playerName}!</p>
           <p>You answered correctly!</p>
+          <button
+            className="bg-blue-500 text-white p-2 rounded mt-4"
+            onClick={nextQuestion} // Move to the next question
+          >
+            Next Question
+          </button>
         </div>
       )}
 
       {gameState === "incorrect" && (
         <div className="text-center text-red-600">
           <p className="text-2xl">Wrong answer!</p>
+          <button
+            className="bg-blue-500 text-white p-2 rounded mt-4"
+            onClick={() => setGameState("waiting")} // Reset to waiting state
+          >
+            Try Again
+          </button>
         </div>
       )}
     </div>
@@ -112,34 +138,24 @@ function PlayScreen() {
 }
 
 function AnswerScreen() {
-  // eslint-disable-next-line
-  const [playerName, setPlayerName] = useState("");
-  // eslint-disable-next-line
-  const [playerAnswer, setPlayerAnswer] = useState("");
   const navigate = useNavigate();
-  const currentQuestionIndex = 0; // You can dynamically pass this from the parent component or fetch it from state
+  const currentQuestionIndex = 0; // Pass the current index dynamically
   const currentQuestion = sampleQuestions[currentQuestionIndex];
-
-  const checkAnswer = (submittedAnswer, correctAnswer, name) => {
-    if (submittedAnswer === correctAnswer) {
-      alert(`Congratulations ${name}, you answered correctly!`);
-    } else {
-      alert("Wrong answer!");
-      navigate("/play"); // Redirect back to the play screen if the answer is wrong
-    }
-  };
 
   useEffect(() => {
     const queryParams = new URLSearchParams(window.location.search);
     const answer = queryParams.get("answer");
     const name = localStorage.getItem("playerName");
 
-    setPlayerAnswer(answer);
-    setPlayerName(name);
-
-    checkAnswer(answer, currentQuestion.answer, name);
+    if (answer === currentQuestion.answer) {
+      alert(`Congratulations ${name}, you answered correctly!`);
+      navigate("/"); // Redirect to home to let them answer the next question
+    } else {
+      alert("Wrong answer!");
+      navigate("/play"); // Redirect back to the play screen if the answer is wrong
+    }
     // eslint-disable-next-line
-  }, [currentQuestion]);
+  }, []);
 
   return null; // This screen is only for validation, so no UI is needed
 }
