@@ -37,12 +37,14 @@ const sampleQuestions = [
 
 function App() {
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
+  // eslint-disable-next-line
   const [playerName, setPlayerName] = useState("");
   const [gameState, setGameState] = useState("waiting"); // 'waiting', 'playing', 'correct', 'incorrect'
 
   const currentQuestion = sampleQuestions[currentQuestionIndex];
   const qrLink = `${window.location.origin}/play`;
 
+  // eslint-disable-next-line
   const handleAnswer = (answer) => {
     if (answer === currentQuestion.answer) {
       setGameState("correct");
