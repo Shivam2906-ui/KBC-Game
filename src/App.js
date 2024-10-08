@@ -37,12 +37,14 @@ const sampleQuestions = [
 
 function App() {
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
+  // eslint-disable-next-line
   const [playerName, setPlayerName] = useState("");
-  const [gameState, setGameState] = useState("waiting"); // 'waiting', 'playing', 'correct', 'incorrect'
+  const [gameState, setGameState] = useState("waiting"); // 'waiting', 'correct', 'incorrect'
 
   const currentQuestion = sampleQuestions[currentQuestionIndex];
   const qrLink = `${window.location.origin}/play`;
 
+  // eslint-disable-next-line
   const handleAnswer = (answer) => {
     if (answer === currentQuestion.answer) {
       setGameState("correct");
@@ -60,6 +62,16 @@ function App() {
     }
   };
 
+  useEffect(() => {
+    if (gameState === "correct") {
+      const timer = setTimeout(() => {
+        nextQuestion(); // Move to the next question after a short delay
+      }, 2000); // 2 seconds delay for the congratulations message
+      return () => clearTimeout(timer); // Cleanup the timer on unmount
+    }
+    // eslint-disable-next-line
+  }, [gameState]);
+
   return (
     <div className="min-h-screen bg-blue-50 p-8 flex flex-col items-center">
       <h1 className="text-3xl font-bold mb-4">KBC-Style Game</h1>
@@ -76,24 +88,14 @@ function App() {
         <div className="text-center text-green-600">
           <p className="text-2xl">Congratulations {playerName}!</p>
           <p>You answered correctly!</p>
-          <button
-            className="bg-blue-500 text-white p-2 rounded mt-4"
-            onClick={nextQuestion} // Move to the next question
-          >
-            Next Question
-          </button>
+          {/* The next question will automatically trigger after a delay */}
         </div>
       )}
 
       {gameState === "incorrect" && (
         <div className="text-center text-red-600">
           <p className="text-2xl">Wrong answer!</p>
-          <button
-            className="bg-blue-500 text-white p-2 rounded mt-4"
-            onClick={() => setGameState("waiting")} // Reset to waiting state
-          >
-            Try Again
-          </button>
+          {/* This message is shown on the mobile UI */}
         </div>
       )}
     </div>
@@ -155,7 +157,7 @@ function AnswerScreen() {
       navigate("/play"); // Redirect back to the play screen if the answer is wrong
     }
     // eslint-disable-next-line
-  }, []);
+  }, [navigate]);
 
   return null; // This screen is only for validation, so no UI is needed
 }
