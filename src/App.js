@@ -1,19 +1,46 @@
 import React, { useState, useEffect } from "react";
 import QRCode from "react-qr-code";
-import { BrowserRouter as Router, Route, Routes, useNavigate } from "react-router-dom";
-import './App.css';
+import {
+  BrowserRouter as Router,
+  Route,
+  Routes,
+  useNavigate,
+} from "react-router-dom";
 
 const sampleQuestions = [
-  { question: "What is the capital of France?", options: ["Paris", "London", "Berlin", "Madrid"], answer: "Paris" },
-  { question: "Who wrote 'Hamlet'?", options: ["Shakespeare", "Dickens", "Hemingway", "Tolkien"], answer: "Shakespeare" },
-  { question: "What is the speed of light?", options: ["3x10^8 m/s", "3x10^6 m/s", "5x10^8 m/s", "1x10^6 m/s"], answer: "3x10^8 m/s" },
-  { question: "Which is the largest planet?", options: ["Earth", "Mars", "Jupiter", "Saturn"], answer: "Jupiter" },
-  { question: "Who is the CEO of Tesla?", options: ["Elon Musk", "Jeff Bezos", "Bill Gates", "Mark Zuckerberg"], answer: "Elon Musk" }
+  {
+    question: "What is the capital of France?",
+    options: ["Paris", "London", "Berlin", "Madrid"],
+    answer: "Paris",
+  },
+  {
+    question: "Who wrote 'Hamlet'?",
+    options: ["Shakespeare", "Dickens", "Hemingway", "Tolkien"],
+    answer: "Shakespeare",
+  },
+  {
+    question: "What is the speed of light?",
+    options: ["3x10^8 m/s", "3x10^6 m/s", "5x10^8 m/s", "1x10^6 m/s"],
+    answer: "3x10^8 m/s",
+  },
+  {
+    question: "Which is the largest planet?",
+    options: ["Earth", "Mars", "Jupiter", "Saturn"],
+    answer: "Jupiter",
+  },
+  {
+    question: "Who is the CEO of Tesla?",
+    options: ["Elon Musk", "Jeff Bezos", "Bill Gates", "Mark Zuckerberg"],
+    answer: "Elon Musk",
+  },
 ];
 
 function App() {
+  // eslint-disable-next-line
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
+  // eslint-disable-next-line
   const [playerName, setPlayerName] = useState("");
+  // eslint-disable-next-line
   const [gameState, setGameState] = useState("waiting"); // 'waiting', 'playing', 'correct', 'incorrect'
 
   const currentQuestion = sampleQuestions[currentQuestionIndex];
@@ -74,7 +101,10 @@ function PlayScreen() {
         value={answer}
         onChange={(e) => setAnswer(e.target.value)}
       />
-      <button className="bg-blue-500 text-white p-2 rounded" onClick={handleSubmit}>
+      <button
+        className="bg-blue-500 text-white p-2 rounded"
+        onClick={handleSubmit}
+      >
         Submit Answer
       </button>
     </div>
@@ -82,8 +112,10 @@ function PlayScreen() {
 }
 
 function AnswerScreen() {
-  const [playerName, setPlayerName] = useState('');
-  const [playerAnswer, setPlayerAnswer] = useState('');
+  // eslint-disable-next-line
+  const [playerName, setPlayerName] = useState("");
+  // eslint-disable-next-line
+  const [playerAnswer, setPlayerAnswer] = useState("");
   const navigate = useNavigate();
   const currentQuestionIndex = 0; // You can dynamically pass this from the parent component or fetch it from state
   const currentQuestion = sampleQuestions[currentQuestionIndex];
@@ -92,20 +124,21 @@ function AnswerScreen() {
     if (submittedAnswer === correctAnswer) {
       alert(`Congratulations ${name}, you answered correctly!`);
     } else {
-      alert('Wrong answer!');
-      navigate('/play'); // Redirect back to the play screen if the answer is wrong
+      alert("Wrong answer!");
+      navigate("/play"); // Redirect back to the play screen if the answer is wrong
     }
   };
 
   useEffect(() => {
     const queryParams = new URLSearchParams(window.location.search);
-    const answer = queryParams.get('answer');
-    const name = localStorage.getItem('playerName');
+    const answer = queryParams.get("answer");
+    const name = localStorage.getItem("playerName");
 
     setPlayerAnswer(answer);
     setPlayerName(name);
 
     checkAnswer(answer, currentQuestion.answer, name);
+    // eslint-disable-next-line
   }, [currentQuestion]);
 
   return null; // This screen is only for validation, so no UI is needed
